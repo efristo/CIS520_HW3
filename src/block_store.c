@@ -28,6 +28,7 @@ block_store_t *block_store_create()
 
     // initialize FBM
     bitmap_t *fbm = bitmap_create(BLOCK_STORE_NUM_BLOCKS);
+    
     bs->fbm = fbm;
 
     return bs;
@@ -47,8 +48,17 @@ void block_store_destroy(block_store_t *const bs)
 // Searches for free block, defines as in use, and returns the block number 
 size_t block_store_allocate(block_store_t *const bs)
 {
-    UNUSED(bs);
-    return 0;
+    // bad inputs
+    if (!bs) return SIZE_MAX;
+
+    // find first free block
+    size_t id = bitmap_ffz(bs->fbm);
+    if (id != SIZE_MAX && id != BLOCK_STORE_AVAIL_BLOCKS)
+    {
+        bitmap_set(bs->fbm, id);
+        return id; 
+    }
+    return SIZE_MAX;
 }
 
 // Attempts to allocate the requested block id
