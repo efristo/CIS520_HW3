@@ -92,12 +92,21 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
     return false;
 }
 
+// Frees the specified block
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
+    // checking parameters 
+    if (bs != NULL && bs -> fbm != NULL) {
+		// free the block if needed
+		
+		// reset bit in fbm
+		if (block_id < bs -> fbm -> bit_count) {
+			bitmap_reset(bs -> fbm, block_id);
+		}
+    }
 }
 
+// Counts the number of blocks marked as in use
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
     // checking parameters 
@@ -109,6 +118,7 @@ size_t block_store_get_used_blocks(const block_store_t *const bs)
     return bitmap_total_set(bs -> fbm);
 }
 
+// Counts the number of blocks marked free for use
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
     // checking parameters 
@@ -120,6 +130,7 @@ size_t block_store_get_free_blocks(const block_store_t *const bs)
     return 256 - bitmap_total_set(bs -> fbm);
 }
 
+// Returns the total number of user-addressable blocks
 size_t block_store_get_total_blocks()
 {
     return BLOCK_STORE_AVAIL_BLOCKS;
