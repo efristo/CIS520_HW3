@@ -115,7 +115,7 @@ size_t block_store_get_free_blocks(const block_store_t *const bs)
     }
 	
 	// return count of non-set bits in fbm
-    return 256 - bitmap_total_set(bs -> fbm);
+    return 256 - bitmap_total_set(bs -> fbm) - 1;
 }
 
 // Returns the total number of user-addressable blocks
