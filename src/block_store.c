@@ -69,7 +69,7 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 		if (bs -> fbm != NULL) {
 			if (block_id < 255) {
 				if (bitmap_test(bs->fbm, block_id)) return false;
-				bitmap_set(bs->fbm, id);
+				bitmap_set(bs->fbm, block_id);
 				return true;
 			}
 		}
