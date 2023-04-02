@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <unistd.h>
 #include "bitmap.h"
 #include "block_store.h"
 // include more if you need
@@ -158,20 +161,27 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    // checking parameters
     if (filename == NULL) {
+        return NULL;
+    }
+
+    FILE * fp; 
+
+    fp = fopen (filename, "r");
+    
+    if (fp == NULL) {
         return NULL;
     }
 
     block_store_t * bs = block_store_create();
 
-    int file = open(filename, O_RDONLY);
+    // reads number of blocks, each size of block_size_bytes from the file to the empty block store array
+    int readElements = fread(bs -> blocks, BLOCK_SIZE_BYTES, BLOCK_STORE_AVAIL_BLOCKS, fp);
 
-    if (file == -1) {
-        return NULL; 
+    //error checking 
+    if(readElements != BLOCK_STORE_NUM_BLOCKS) {
+        printf("Error reading file\n");
     }
-
-    read(file, bs->blocks, BLOCK_STORE_NUM_BYTES);
 
     return bs; 
 
@@ -185,14 +195,39 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
         return 0;
     } 
 
+    // system call to open file
     int fd = open(filename, O_WRONLY);
     if (fd == -1)
     {
         return 0;
     }
 
+    // serialize data
+    size_t i = 0; 
+    size_t offset = 0; 
+    char *buf = malloc(BLOCK_SIZE_BYTES);
+    for (i = 0; i < 255; i++) 
+    {
+        offset = i*BLOCK_SIZE_BYTES;
+        
+        if (!bitmap_test(bs->fbm, i))
+        {
+            memset(buf, '0', BLOCK_SIZE_BYTES);
+        }
+        else 
+        {
+            memcpy(buf, (bs->blocks)[i], BLOCK_SIZE_BYTES);
+        }
+        
+        // set offest
+        if (lseek(fd, offset, SEEK_CUR) == -1)
+        return 0;
     
-
-
-    return 0;
+        // write bytes to output file
+        if (write(fd, buf, BLOCK_SIZE_BYTES) != -1) 
+        {
+            close(fd); // close file descriptor
+        }
+    }
+    return offset;
 }
