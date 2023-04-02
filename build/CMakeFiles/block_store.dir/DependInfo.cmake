@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/homes/evfristo/home/hw3/src/bitmap.c" "/homes/evfristo/home/hw3/build/CMakeFiles/block_store.dir/src/bitmap.c.o"
-  "/homes/evfristo/home/hw3/src/block_store.c" "/homes/evfristo/home/hw3/build/CMakeFiles/block_store.dir/src/block_store.c.o"
+  "/homes/evfristo/home/hw3/CIS520_HW3/src/bitmap.c" "/homes/evfristo/home/hw3/CIS520_HW3/build/CMakeFiles/block_store.dir/src/bitmap.c.o"
+  "/homes/evfristo/home/hw3/CIS520_HW3/src/block_store.c" "/homes/evfristo/home/hw3/CIS520_HW3/build/CMakeFiles/block_store.dir/src/block_store.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

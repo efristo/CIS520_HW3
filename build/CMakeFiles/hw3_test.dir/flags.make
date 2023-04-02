@@ -6,5 +6,5 @@ CXX_FLAGS = -std=c++11 -Wall -Wextra -Wshadow -Werror -Wno-sign-compare -D_XOPEN
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/homes/evfristo/home/hw3/include 
+CXX_INCLUDES = -I/homes/evfristo/home/hw3/CIS520_HW3/include 
 

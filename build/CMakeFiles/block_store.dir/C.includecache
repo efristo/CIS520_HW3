@@ -22,7 +22,13 @@ stdlib.h
 stdbool.h
 -
 
-/homes/evfristo/home/hw3/src/block_store.c
+/homes/evfristo/home/hw3/CIS520_HW3/src/bitmap.c
+bitmap.h
+/homes/evfristo/home/hw3/CIS520_HW3/src/bitmap.h
+string.h
+-
+
+/homes/evfristo/home/hw3/CIS520_HW3/src/block_store.c
 stdio.h
 -
 stdint.h
@@ -30,7 +36,7 @@ stdint.h
 string.h
 -
 bitmap.h
-/homes/evfristo/home/hw3/src/bitmap.h
+/homes/evfristo/home/hw3/CIS520_HW3/src/bitmap.h
 block_store.h
-/homes/evfristo/home/hw3/src/block_store.h
+/homes/evfristo/home/hw3/CIS520_HW3/src/block_store.h
 
