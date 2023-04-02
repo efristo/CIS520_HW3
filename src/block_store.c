@@ -77,19 +77,29 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
 
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
-    UNUSED(bs);
-    return 0;
+    // checking parameters 
+    if (bs == NULL || bs -> fbm == NULL) {
+        return SIZE_MAX;
+    }
+	
+	// return count of set bits in fbm
+    return bitmap_total_set(bs -> fbm);
 }
 
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
-    UNUSED(bs);
-    return 0;
+    // checking parameters 
+    if (bs == NULL || bs -> fbm == NULL) {
+        return SIZE_MAX;
+    }
+	
+	// return count of non-set bits in fbm
+    return 256 - bitmap_total_set(bs -> fbm);
 }
 
 size_t block_store_get_total_blocks()
 {
-    return 0;
+    return BLOCK_STORE_AVAIL_BLOCKS;
 }
 
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
