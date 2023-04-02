@@ -158,6 +158,7 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
+    // checking parameters
     if (filename == NULL) {
         return NULL;
     }
