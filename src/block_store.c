@@ -49,7 +49,7 @@ block_store_t *block_store_create()
 
 }
 
-
+// Destroys the provided block storage device
 void block_store_destroy(block_store_t *const bs)
 {
     
@@ -85,10 +85,14 @@ size_t block_store_allocate(block_store_t *const bs)
     return block_number;
 }
 
+// Attempts to allocate the requested block id
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
+    if (bs == NULL || bs -> fbm == NULL) {
+        if (block_id < bs -> fbm -> bit_count) {
+			return bitmap_test(bs -> fmb, block_id);
+		}
+    }
     return false;
 }
 
