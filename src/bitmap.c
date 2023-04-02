@@ -13,6 +13,7 @@ struct bitmap
     size_t bit_count, byte_count;
 };
 
+
 #define FLAG_CHECK(bitmap, flag) ((bitmap)->flags & flag)
 // Not sure I want these
 // #define FLAG_SET(bitmap, flag) bitmap->flags |= flag

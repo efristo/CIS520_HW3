@@ -26,6 +26,10 @@ block_store_t *block_store_create()
     // total # of bytes in block storage
     bs->size = BLOCK_STORE_NUM_BYTES;
 
+    // initialize FBM
+    bitmap_t *fbm = bitmap_create(BLOCK_STORE_NUM_BLOCKS);
+    bs->fbm = fbm;
+
     return bs;
 }
 
@@ -33,10 +37,11 @@ block_store_t *block_store_create()
 // Destroys the provided block storage device
 void block_store_destroy(block_store_t *const bs)
 {
-    if (bs) 
-    {
-        free(bs);
-    }
+   if (bs) 
+   {
+    bitmap_destroy(bs->fbm);
+    free(bs);
+   }
 }
 
 // Searches for free block, defines as in use, and returns the block number 

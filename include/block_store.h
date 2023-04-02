@@ -18,6 +18,7 @@ extern "C"
 #define BLOCK_STORE_NUM_BYTES (BLOCK_STORE_NUM_BLOCKS * BLOCK_SIZE_BYTES)
 
 
+
 	// Declaring the struct but not implementing in the header allows us to prevent users
 	// from using the object directly and monkeying with the contents
 	// They can only create pointers to the struct, which must be given out by us
