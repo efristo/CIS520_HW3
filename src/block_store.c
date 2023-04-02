@@ -113,7 +113,7 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     }
 
     //turns into a void pointer
-    memcpy(buffer, &((bs->blocks)[block_id]), BLOCK_SIZE_BYTES);
+    memcpy(buffer, ((bs->blocks)[block_id]), BLOCK_SIZE_BYTES);
 
     //amount of bytes written
     return BLOCK_SIZE_BYTES;
@@ -126,7 +126,7 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     }
 
     //memcpys into a void pointer
-    memcpy(&((bs->blocks)[block_id]), buffer, BLOCK_SIZE_BYTES);
+    memcpy(((bs->blocks)[block_id]), buffer, BLOCK_SIZE_BYTES);
 
     //amount of bytes written
     return BLOCK_SIZE_BYTES;
