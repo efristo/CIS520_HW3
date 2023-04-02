@@ -64,9 +64,11 @@ size_t block_store_allocate(block_store_t *const bs)
 // Attempts to allocate the requested block id
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
-    if (bs != NULL && bs -> fbm != NULL) {
-        if (block_id < 255) {
+    if (bs != NULL) {
+		if (bs -> fbm != NULL) {
+			if (block_id < 255) {
 			return !bitmap_test(bs -> fbm, block_id);
+			}
 		}
     }
     return false;
