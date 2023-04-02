@@ -8,21 +8,19 @@
 // remove it before you submit. Just allows things to compile initially.
 #define UNUSED(x) (void)(x)
 
+// struct defining what a block actually is
+// we went with uchar since each is 1 byte
 typedef struct block {
     unsigned char block[BLOCK_SIZE_BYTES];
 } block_t; 
 
+// struct defining the block store
 typedef struct block_store 
 {
     bitmap_t *fbm;
     block_t blocks[BLOCK_STORE_NUM_BLOCKS];
     uint32_t bitmap_blocks;
 } block_store_t;
-
-// struct block_store 
-// {
-//     bitmap_t *data;
-// };
 
 block_store_t *block_store_create()
 {
