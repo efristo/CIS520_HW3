@@ -9,7 +9,7 @@ extern "C"
 #include <stdlib.h>
 #include <stdbool.h>
 
-	// Constants
+// Constants
 #define BITMAP_SIZE_BYTES 32         //  
 #define BLOCK_STORE_NUM_BLOCKS 256   // 2^ blocks. 
 #define BLOCK_STORE_AVAIL_BLOCKS (BLOCK_STORE_NUM_BLOCKS - 1) // First block consumed by the FBM
@@ -19,7 +19,7 @@ extern "C"
 
 
 	// Declaring the struct but not implementing in the header allows us to prevent users
-	//  from using the object directly and monkeying with the contents
+	// from using the object directly and monkeying with the contents
 	// They can only create pointers to the struct, which must be given out by us
 	// This enforces a black box device, but it can be restricting
 	typedef struct block_store block_store_t;
