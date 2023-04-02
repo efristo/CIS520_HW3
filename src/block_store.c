@@ -78,12 +78,12 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
     // checking parameters 
-    if (bs != NULL && bs -> fbm != NULL) {
-		// free the block if needed
-		
-		// reset bit in fbm
-		if (block_id < 255) {
-			bitmap_reset(bs -> fbm, block_id);
+    if (bs != NULL) {
+		if (bs -> fbm != NULL) {
+			// reset bit in fbm
+			if (block_id < 255) {
+				bitmap_reset(bs -> fbm, block_id);
+			}
 		}
     }
 }
