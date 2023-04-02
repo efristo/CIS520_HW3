@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <fcntl.h>
 #include "bitmap.h"
 #include "block_store.h"
 // include more if you need
@@ -163,7 +164,20 @@ block_store_t *block_store_deserialize(const char *const filename)
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
-    UNUSED(bs);
-    UNUSED(filename);
+    // bad inputs
+    if (!bs || !filename || strcmp(filename, "\n") || strcmp(filename, "\0") || strcmp(filename, ""))
+    {
+        return 0;
+    } 
+
+    int fd = open(filename, O_WRONLY);
+    if (fd == -1)
+    {
+        return 0;
+    }
+
+    
+
+
     return 0;
 }
