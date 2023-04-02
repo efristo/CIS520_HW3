@@ -89,8 +89,8 @@ size_t block_store_allocate(block_store_t *const bs)
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
     if (bs == NULL || bs -> fbm == NULL) {
-        if (block_id < bs -> fbm -> bit_count) {
-			return bitmap_test(bs -> fmb, block_id);
+        if (block_id < 255) {
+			return bitmap_test(bs -> fbm, block_id);
 		}
     }
     return false;
@@ -104,7 +104,7 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
 		// free the block if needed
 		
 		// reset bit in fbm
-		if (block_id < bs -> fbm -> bit_count) {
+		if (block_id < 255) {
 			bitmap_reset(bs -> fbm, block_id);
 		}
     }
