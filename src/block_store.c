@@ -14,7 +14,7 @@ typedef struct block {
 
 typedef struct block_store 
 {
-    bitmap_t *bitmap;
+    bitmap_t *fbm;
     block_t blocks[BLOCK_STORE_NUM_BLOCKS];
     uint32_t bitmap_blocks;
 } block_store_t;
@@ -32,16 +32,36 @@ block_store_t *block_store_create()
 void block_store_destroy(block_store_t *const bs)
 {
     
+    // checks that block store actually exists 
     if (bs != NULL) {
-        bitmap_destroy(bs -> bitmap);
+        bitmap_destroy(bs -> fbm);
+        // free block store memory 
         free(bs);
     }
 
 }
+
+// Searches for free block, defines as in use, and returns the block number 
 size_t block_store_allocate(block_store_t *const bs)
 {
-    UNUSED(bs);
-    return 0;
+    // checking parameters 
+    if (bs == NULL || bs -> fbm == NULL) {
+        return SIZE_MAX;
+    }
+
+    // looks for first zero bit address in the bitmap 
+    size_t block_number = bitmap_ffz(bs -> fbm);
+
+    // checking boundaries to make sure it is not out of bounds 
+    if (block_number >= (BLOCK_STORE_NUM_BLOCKS - bs -> bitmap_blocks) || block_number == SIZE_MAX) {
+        return SIZE_MAX;
+    }
+
+    // sets the requested bit 
+    bitmap_set (bs -> fbm, block_number);
+    
+    // returns the allocated block #
+    return block_number;
 }
 
 bool block_store_request(block_store_t *const bs, const size_t block_id)
