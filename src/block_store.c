@@ -158,8 +158,30 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    UNUSED(filename);
-    return NULL;
+    if (filename == NULL) {
+        return NULL;
+    }
+
+    FILE * fp; 
+
+    fp = fopen (filename, "r");
+    
+    if (fp == NULL) {
+        return NULL;
+    }
+
+    block_store_t * bs = block_store_create();
+
+    // reads number of blocks, each size of block_size_bytes from the file to the empty block store array
+    int readElements = fread(bs -> blocks, BLOCK_SIZE_BYTES, BLOCK_STORE_AVAIL_BLOCKS, fp);
+
+    //error checking 
+    if(readElements != BLOCK_STORE_NUM_BLOCKS) {
+        printf("Error reading file\n");
+    }
+
+    return bs; 
+
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
