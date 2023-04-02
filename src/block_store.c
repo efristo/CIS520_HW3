@@ -11,6 +11,7 @@
 
 typedef struct block_store 
 {
+    bitmap_t *fbm; 
     void *blocks[BLOCK_STORE_NUM_BLOCKS]; // array of blocks
     size_t size; // size of bs in bytes
 } block_store_t;
