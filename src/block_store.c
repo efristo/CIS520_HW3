@@ -7,6 +7,7 @@
 // You might find this handy.  I put it around unused parameters, but you should
 // remove it before you submit. Just allows things to compile initially.
 #define UNUSED(x) (void)(x)
+#define BITMAP_START_BLOCK 127
 
 // struct defining what a block actually is
 // we went with uchar since each is 1 byte
@@ -22,10 +23,30 @@ typedef struct block_store
     uint32_t bitmap_blocks;
 } block_store_t;
 
+// creates new block store device 
 block_store_t *block_store_create()
 {
-    return NULL;
+    block_store_t *bs = (block_store_t *)calloc(1, sizeof(block_store_t));
+
+    if (bs == NULL) return NULL; 
+
+    bs -> fbm = bitmap_overlay(BLOCK_STORE_NUM_BLOCKS, &((bs -> blocks)[BITMAP_START_BLOCK]));
+
+    uint32_t blocks_required = (BLOCK_STORE_NUM_BLOCKS / 8) / 32;
+    uint32_t i; 
+
+    for (i = BITMAP_START_BLOCK; i < BITMAP_START_BLOCK + blocks_required; i++) {
+        if (!block_store_request(bs, i)) break; 
+    }
+
+    bs -> bitmap_blocks = blocks_required;
+
+    if (bs -> fbm == NULL) return NULL;
+    
+    return bs;
+
 }
+
 
 void block_store_destroy(block_store_t *const bs)
 {
