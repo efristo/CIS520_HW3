@@ -57,6 +57,7 @@ size_t block_store_allocate(block_store_t *const bs)
     if (id != SIZE_MAX && id != BLOCK_STORE_AVAIL_BLOCKS)
     {
         bitmap_set(bs->fbm, id);
+		(bs->blocks)[id] = calloc(BLOCK_SIZE_BYTES, 1);
         return id; 
     }
     return SIZE_MAX;
@@ -70,6 +71,7 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 			if (block_id < 255) {
 				if (bitmap_test(bs->fbm, block_id)) return false;
 				bitmap_set(bs->fbm, block_id);
+				(bs->blocks)[block_id] = calloc(BLOCK_SIZE_BYTES, 1);
 				return true;
 			}
 		}
@@ -85,6 +87,8 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
 		if (bs -> fbm != NULL) {
 			// reset bit in fbm
 			if (block_id < 255) {
+				free((bs->blocks)[block_id]);
+				(bs->blocks)[block_id] = NULL;
 				bitmap_reset(bs -> fbm, block_id);
 			}
 		}
@@ -128,7 +132,9 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     }
 
     //turns into a void pointer
-    memcpy(buffer, ((bs->blocks)[block_id]), BLOCK_SIZE_BYTES);
+    if ((bs->blocks)[block_id]){
+		memcpy(buffer, ((bs->blocks)[block_id]), BLOCK_SIZE_BYTES);
+	}
 
     //amount of bytes written
     return BLOCK_SIZE_BYTES;
@@ -141,7 +147,9 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     }
 
     //memcpys into a void pointer
-    memcpy(((bs->blocks)[block_id]), buffer, BLOCK_SIZE_BYTES);
+	if ((bs->blocks)[block_id]){
+		memcpy(((bs->blocks)[block_id]), buffer, BLOCK_SIZE_BYTES);
+	}
 
     //amount of bytes written
     return BLOCK_SIZE_BYTES;
