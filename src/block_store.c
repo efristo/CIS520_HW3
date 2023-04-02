@@ -19,18 +19,20 @@ typedef struct block {
 typedef struct block_store 
 {
     bitmap_t *fbm;
-    block_t blocks[BLOCK_STORE_NUM_BLOCKS];
+    int *blocks[BLOCK_STORE_NUM_BLOCKS];
     uint32_t bitmap_blocks;
 } block_store_t;
 
 // creates new block store device 
 block_store_t *block_store_create()
 {
-    block_store_t *bs = (block_store_t *)calloc(1, sizeof(block_store_t));
+    block_store_t *bs = (block_store_t*)malloc(sizeof(block_store_t));
+    if (!bs)
+    {
+        return NULL; 
+    }
 
-    if (bs == NULL) return NULL; 
-
-    bs -> fbm = bitmap_overlay(BLOCK_STORE_NUM_BLOCKS, &((bs -> blocks)[BITMAP_START_BLOCK]));
+    bs->fbm = bitmap_create(256);
 
     uint32_t blocks_required = (BLOCK_STORE_NUM_BLOCKS / 8) / 32;
     uint32_t i; 
