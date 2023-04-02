@@ -1,0 +1,4 @@
+/homes/evfristo/home/hw3/build/CMakeFiles/rebuild_cache.dir
+/homes/evfristo/home/hw3/build/CMakeFiles/edit_cache.dir
+/homes/evfristo/home/hw3/build/CMakeFiles/block_store.dir
+/homes/evfristo/home/hw3/build/CMakeFiles/hw3_test.dir
