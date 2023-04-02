@@ -162,23 +162,15 @@ block_store_t *block_store_deserialize(const char *const filename)
         return NULL;
     }
 
-    FILE * fp; 
-
-    fp = fopen (filename, "r");
-    
-    if (fp == NULL) {
-        return NULL;
-    }
-
     block_store_t * bs = block_store_create();
 
-    // reads number of blocks, each size of block_size_bytes from the file to the empty block store array
-    int readElements = fread(bs -> blocks, BLOCK_SIZE_BYTES, BLOCK_STORE_AVAIL_BLOCKS, fp);
+    int file = open(filename, O_RDONLY);
 
-    //error checking 
-    if(readElements != BLOCK_STORE_NUM_BLOCKS) {
-        printf("Error reading file\n");
+    if (file == -1) {
+        return NULL; 
     }
+
+    read(file, bs->blocks, BLOCK_STORE_NUM_BYTES);
 
     return bs; 
 
