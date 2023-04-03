@@ -161,26 +161,31 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    if (filename == NULL) {
-        return NULL;
-    }
-
-    FILE * fp; 
-
-    fp = fopen (filename, "r");
+    // bad inputs
+    if (!filename || !strcmp(filename, "\n") || !strcmp(filename, "\0") || !strcmp(filename, ""))
+    {
+        return 0;
+    } 
     
-    if (fp == NULL) {
+    // system call to open file
+    int fd = open(filename, O_RDONLY); 
+    if (fd == -1)
+    {
         return NULL;
     }
 
-    block_store_t * bs = block_store_create();
+    // deserialize data
+    block_store_t *bs = block_store_create();
+    char *buf = malloc(BLOCK_SIZE_BYTES);
 
-    // reads number of blocks, each size of block_size_bytes from the file to the empty block store array
-    int readElements = fread(bs -> blocks, BLOCK_SIZE_BYTES, BLOCK_STORE_AVAIL_BLOCKS, fp);
-
-    //error checking 
-    if(readElements != BLOCK_STORE_NUM_BLOCKS) {
-        printf("Error reading file\n");
+    size_t i = 0; 
+    for (i = 0; i < 256; i++)
+    {
+        if (read(fd, buf, BLOCK_SIZE_BYTES) == -1)
+        {
+            return NULL;
+        }
+        memcpy(bs->blocks[i], buf, BLOCK_SIZE_BYTES);
     }
 
     return bs; 
@@ -190,13 +195,13 @@ block_store_t *block_store_deserialize(const char *const filename)
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
     // bad inputs
-    if (!bs || !filename || strcmp(filename, "\n") || strcmp(filename, "\0") || strcmp(filename, ""))
+    if (!bs || !filename || !strcmp(filename, "\n") || !strcmp(filename, "\0") || !strcmp(filename, ""))
     {
         return 0;
     } 
 
     // system call to open file
-    int fd = open(filename, O_WRONLY);
+    int fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0777);
     if (fd == -1)
     {
         return 0;
@@ -204,11 +209,9 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 
     // serialize data
     size_t i = 0; 
-    size_t offset = 0; 
     char *buf = malloc(BLOCK_SIZE_BYTES);
-    for (i = 0; i < 255; i++) 
+    for (i = 0; i < 256; i++) 
     {
-        offset = i*BLOCK_SIZE_BYTES;
         
         if (!bitmap_test(bs->fbm, i))
         {
@@ -218,16 +221,12 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
         {
             memcpy(buf, (bs->blocks)[i], BLOCK_SIZE_BYTES);
         }
-        
-        // set offest
-        if (lseek(fd, offset, SEEK_CUR) == -1)
-        return 0;
     
         // write bytes to output file
-        if (write(fd, buf, BLOCK_SIZE_BYTES) != -1) 
+        if (write(fd, buf, BLOCK_SIZE_BYTES) == -1) 
         {
             close(fd); // close file descriptor
         }
     }
-    return offset;
+    return BLOCK_STORE_NUM_BYTES;
 }
