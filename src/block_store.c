@@ -161,35 +161,35 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    // bad inputs
-    if (!filename || !strcmp(filename, "\n") || !strcmp(filename, "\0") || !strcmp(filename, ""))
-    {
-        return 0;
-    } 
-    
-    // system call to open file
-    int fd = open(filename, O_RDONLY); 
-    if (fd == -1)
-    {
+    if (filename == NULL) {
         return NULL;
     }
+	
+    block_store_t * bs = block_store_create();
+	
+	char *buf = malloc(BLOCK_SIZE_BYTES);
 
-    // deserialize data
-    block_store_t *bs = block_store_create();
-    char *buf = malloc(BLOCK_SIZE_BYTES);
-
-    size_t i = 0; 
-    for (i = 0; i < 256; i++)
-    {
-        if (read(fd, buf, BLOCK_SIZE_BYTES) == -1)
-        {
-            return NULL;
-        }
-        memcpy(bs->blocks[i], buf, BLOCK_SIZE_BYTES);
-    }
+	// first need to get fbm to see which blocks to read and which to skip
+	int fd = open(filename, O_RDONLY);
+	if (fd == -1) return NULL;
+	if (lseek(fd, 127 * BLOCK_SIZE_BYTES, SEEK_CUR) == -1) return NULL;
+	if (read(fd, buf, BLOCK_SIZE_BYTES) == -1) return NULL;
+	bitmap_t *bitmap = bitmap_import(BLOCK_STORE_NUM_BLOCKS, buf);
+	
+	// loop through fbm, allocate blocks that are marked to have data and then read the data into them
+	lseek(fd, 0, SEEK_SET);
+	for (int i = 0; i < 256; i++)
+	{
+		if (read(fd, buf, BLOCK_SIZE_BYTES) == -1) return NULL;
+		
+		if (bitmap_test(bitmap, i))
+		{
+			block_store_request(bs, i);
+			block_store_write(bs, i, buf);
+		}
+	}
 
     return bs; 
-
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
@@ -213,7 +213,11 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
     for (i = 0; i < 256; i++) 
     {
         
-        if (!bitmap_test(bs->fbm, i))
+		if (i == 127)
+		{
+			memcpy(buf, bitmap_export(bs->fbm), BITMAP_SIZE_BYTES); 
+		}
+        else if (!bitmap_test(bs->fbm, i))
         {
             memset(buf, '0', BLOCK_SIZE_BYTES);
         }
