@@ -13,70 +13,85 @@
 // remove it before you submit. Just allows things to compile initially.
 #define UNUSED(x) (void)(x)
 
-
+// Implementation of the block store struct. 
 typedef struct block_store 
 {
     bitmap_t *fbm; 
-    void *blocks[BLOCK_STORE_NUM_BLOCKS]; // array of blocks
-    size_t size; // size of bs in bytes
+    void *blocks[BLOCK_STORE_NUM_BLOCKS]; 
 } block_store_t;
 
 
 block_store_t *block_store_create()
 {
-    // create the block storage
+    // Create the block store object. 
     block_store_t *bs = malloc(sizeof(block_store_t));
-    if (!bs) return NULL;
-    
-    // total # of bytes in block storage
-    bs->size = BLOCK_STORE_NUM_BYTES;
+    if (!bs)
+    {
+        return NULL;
+    } 
 
-    // initialize FBM
+    // Initialize the FBM. 
     bitmap_t *fbm = bitmap_create(BLOCK_STORE_NUM_BLOCKS);
-    
-    bs->fbm = fbm;
+    if (!fbm)
+    {
+        return NULL; 
+    }
+    bs -> fbm = fbm;
 
     return bs;
 }
 
-
-// Destroys the provided block storage device
 void block_store_destroy(block_store_t *const bs)
 {
+   // If it exists, destroy the block store and its FBM. 
    if (bs) 
    {
-    bitmap_destroy(bs->fbm);
-    free(bs);
+        bitmap_destroy(bs -> fbm);
+        free(bs);
    }
 }
 
-// Searches for free block, defines as in use, and returns the block number 
+
 size_t block_store_allocate(block_store_t *const bs)
 {
-    // bad inputs
-    if (!bs) return SIZE_MAX;
+    // Bad inputs. 
+    if (!bs)
+    {
+        return SIZE_MAX;
+    } 
 
-    // find first free block
-    size_t id = bitmap_ffz(bs->fbm);
+    // Find the first free block and allocate it. 
+    size_t id = bitmap_ffz(bs -> fbm);
     if (id != SIZE_MAX && id != BLOCK_STORE_AVAIL_BLOCKS)
     {
+        // Set the corresponding bit in the FBM. 
         bitmap_set(bs->fbm, id);
-		(bs->blocks)[id] = calloc(BLOCK_SIZE_BYTES, 1);
+		(bs -> blocks)[id] = calloc(BLOCK_SIZE_BYTES, 1); 
         return id; 
     }
     return SIZE_MAX;
 }
 
-// Attempts to allocate the requested block id
+
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
-    if (bs != NULL) {
-		if (bs -> fbm != NULL) {
-			if (block_id < 255) {
-				if (bitmap_test(bs->fbm, block_id)) return false;
-				bitmap_set(bs->fbm, block_id);
-				(bs->blocks)[block_id] = calloc(BLOCK_SIZE_BYTES, 1);
-				return true;
+    // Check for bad inputs. 
+    if (bs != NULL) 
+    {
+		if (bs -> fbm != NULL) 
+        {
+			if (block_id < BLOCK_STORE_NUM_BLOCKS) 
+            {
+                // Return if requested block in use. 
+                if (bitmap_test(bs -> fbm, block_id)) 
+                {
+                    return false;
+                }
+                
+                // Set the corresponding bit in the FBM. 
+                bitmap_set(bs -> fbm, block_id);
+				(bs -> blocks)[block_id] = calloc(BLOCK_SIZE_BYTES, 1); 
+                return true;
 			}
 		}
     }
@@ -86,43 +101,47 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 // Frees the specified block
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
-    // checking parameters 
-    if (bs != NULL) {
-		if (bs -> fbm != NULL) {
-			// reset bit in fbm
-			if (block_id < 255) {
-				free((bs->blocks)[block_id]);
-				(bs->blocks)[block_id] = NULL;
+    // Check for bad inputs. 
+    if (bs != NULL) 
+    {
+		if (bs -> fbm != NULL) 
+        {
+			if (block_id < BLOCK_STORE_NUM_BLOCKS) {
+				// Release the . and clear . 
+                free((bs -> blocks)[block_id]);
+				(bs -> blocks)[block_id] = NULL;
 				bitmap_reset(bs -> fbm, block_id);
 			}
 		}
     }
 }
 
-// Counts the number of blocks marked as in use
+
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
-    // checking parameters 
-    if (bs == NULL || bs -> fbm == NULL) {
+    // Check for bad inputs. 
+    if (bs == NULL || bs -> fbm == NULL) 
+    {
         return SIZE_MAX;
     }
 	
-	// return count of set bits in fbm
+    // Return # of available blocks. 
     return bitmap_total_set(bs -> fbm);
 }
 
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
-    // checking parameters 
-    if (bs == NULL || bs -> fbm == NULL) {
+    // Check for bad inputs. 
+    if (bs == NULL || bs -> fbm == NULL) 
+    {
         return SIZE_MAX;
     }
 	
-	// return count of non-set bits in fbm
-    return 256 - bitmap_total_set(bs -> fbm) - 1;
+	// Return # of free blocks. 
+    return BLOCK_STORE_AVAIL_BLOCKS - bitmap_total_set(bs -> fbm);
 }
 
-// Returns the total number of user-addressable blocks
+
 size_t block_store_get_total_blocks()
 {
     return BLOCK_STORE_AVAIL_BLOCKS;
@@ -130,34 +149,37 @@ size_t block_store_get_total_blocks()
 
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-
-    if (bs == NULL || buffer == NULL || block_id >= BLOCK_STORE_NUM_BYTES || block_id == 0) {
+    // Check for bad inputs. 
+    if (bs == NULL || buffer == NULL || block_id >= BLOCK_STORE_NUM_BYTES || block_id == 0) 
+    {
         return 0;
     }
 
-    //turns into a void pointer
-    if ((bs->blocks)[block_id]){
-		memcpy(buffer, ((bs->blocks)[block_id]), BLOCK_SIZE_BYTES);
+    // Copy the block's contents into the given buffer.  
+    if ((bs -> blocks)[block_id])
+    {
+		memcpy(buffer, ((bs -> blocks)[block_id]), BLOCK_SIZE_BYTES);
 	}
-
-    //amount of bytes written
     return BLOCK_SIZE_BYTES;
 }
+
 
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {
-    if (bs == NULL || buffer == NULL || block_id > BLOCK_STORE_NUM_BYTES) {
+    // Check for bad inputs.
+    if (bs == NULL || buffer == NULL || block_id > BLOCK_STORE_NUM_BYTES) 
+    {
         return 0;
     }
 
-    //memcpys into a void pointer
-	if ((bs->blocks)[block_id]){
-		memcpy(((bs->blocks)[block_id]), buffer, BLOCK_SIZE_BYTES);
+    // Copy the buffer's contents into the block.
+	if ((bs -> blocks)[block_id])
+    {
+		memcpy(((bs -> blocks)[block_id]), buffer, BLOCK_SIZE_BYTES);
 	}
-
-    //amount of bytes written
     return BLOCK_SIZE_BYTES;
 }
+
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
