@@ -188,26 +188,50 @@ block_store_t *block_store_deserialize(const char *const filename)
     }
 	
     block_store_t * bs = block_store_create();
+	if (!bs)
+	{
+		return NULL;
+	}
 	
 	char *buf = malloc(BLOCK_SIZE_BYTES);
 
 	// first need to get fbm to see which blocks to read and which to skip
 	int fd = open(filename, O_RDONLY);
-	if (fd == -1) return NULL;
-	if (lseek(fd, 127 * BLOCK_SIZE_BYTES, SEEK_CUR) == -1) return NULL;
-	if (read(fd, buf, BLOCK_SIZE_BYTES) == -1) return NULL;
+	if (fd == -1)
+	{
+		printf("Deserialize open file error: %s/n", strerror(errno));
+	}
+	// go to 127th block, where fbm should be
+	if (lseek(fd, 127 * BLOCK_SIZE_BYTES, SEEK_CUR) == -1)
+	{
+		printf("Deserialize file seek error: %s/n", strerror(errno));
+	}
+	// read fbm into buffer
+	if (read(fd, buf, BLOCK_SIZE_BYTES) == -1)
+	{
+		printf("Deserialize file read error (bitmap): %s/n", strerror(errno));
+	}
+	// save fbm
 	bitmap_t *bitmap = bitmap_import(BLOCK_STORE_NUM_BLOCKS, buf);
 	
 	// loop through fbm, allocate blocks that are marked to have data and then read the data into them
-	lseek(fd, 0, SEEK_SET);
+	if (lseek(fd, 0, SEEK_SET) == -1)
+	{
+		printf("Deserialize file seek error: %s/n", strerror(errno));
+	}
 	for (int i = 0; i < 256; i++)
 	{
-		if (read(fd, buf, BLOCK_SIZE_BYTES) == -1) return NULL;
+		if (read(fd, buf, BLOCK_SIZE_BYTES) == -1)
+		{
+			printf("Deserialize file read error: %s/n", strerror(errno));
+		}
 		
 		if (bitmap_test(bitmap, i))
 		{
-			block_store_request(bs, i);
-			block_store_write(bs, i, buf);
+			// update new fbm and allocate space for the block
+			if (!block_store_request(bs, i)) return NULL;
+			// write data to the block
+			if (block_store_write(bs, i, buf) != BLOCK_SIZE_BYTES) return NULL;
 		}
 	}
 
@@ -226,8 +250,8 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
     int fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0777);
     if (fd == -1)
     {
-        return 0;
-    }
+		printf("Serialize open file error: %s/n", strerror(errno));
+	}
 
     // serialize data
     size_t i = 0; 
@@ -251,8 +275,14 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
         // write bytes to output file
         if (write(fd, buf, BLOCK_SIZE_BYTES) == -1) 
         {
-            close(fd); // close file descriptor
-        }
+			printf("Serialize file write error: %s/n", strerror(errno));
+		}
     }
+	
+	if (close(fd) == -1) // close file descriptor
+	{
+		printf("Serialize close file error: %s/n", strerror(errno));
+	}
+	
     return BLOCK_STORE_NUM_BYTES;
 }
