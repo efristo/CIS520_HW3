@@ -183,10 +183,13 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    if (filename == NULL) {
+    // Check for bad inputs. 
+    if (filename == NULL) 
+    {
         return NULL;
     }
 	
+    // Create block store. 
     block_store_t * bs = block_store_create();
 	if (!bs)
 	{
@@ -195,70 +198,82 @@ block_store_t *block_store_deserialize(const char *const filename)
 	
 	char *buf = malloc(BLOCK_SIZE_BYTES);
 
-	// first need to get fbm to see which blocks to read and which to skip
+	// First need to get fbm to see which blocks to read and which to skip.
 	int fd = open(filename, O_RDONLY);
 	if (fd == -1)
 	{
 		printf("Deserialize open file error: %s/n", strerror(errno));
 	}
-	// go to 127th block, where fbm should be
+	
+    // Go to the 127th block, i.e. where the FBM should be.
 	if (lseek(fd, 127 * BLOCK_SIZE_BYTES, SEEK_CUR) == -1)
 	{
-		printf("Deserialize file seek error: %s/n", strerror(errno));
+		printf("Deserialize Error (lseek): %s/n", strerror(errno));
 	}
-	// read fbm into buffer
+	
+    // Read the FBM into the buffer.
 	if (read(fd, buf, BLOCK_SIZE_BYTES) == -1)
 	{
-		printf("Deserialize file read error (bitmap): %s/n", strerror(errno));
+		printf("Deserialize Error (read): %s/n", strerror(errno));
 	}
-	// save fbm
+	// Save FBM. 
 	bitmap_t *bitmap = bitmap_import(BLOCK_STORE_NUM_BLOCKS, buf);
 	
-	// loop through fbm, allocate blocks that are marked to have data and then read the data into them
+	// Reset file offset. 
 	if (lseek(fd, 0, SEEK_SET) == -1)
 	{
-		printf("Deserialize file seek error: %s/n", strerror(errno));
+		printf("Deserialize Error (lseek): %s/n", strerror(errno));
 	}
-	for (int i = 0; i < 256; i++)
+
+	// Loop through FBM, allocating blocks that are marked as in use. 
+    for (int i = 0; i < 256; i++)
 	{
 		if (read(fd, buf, BLOCK_SIZE_BYTES) == -1)
 		{
-			printf("Deserialize file read error: %s/n", strerror(errno));
+			printf("Deserialize Error (read): %s/n", strerror(errno));
 		}
 		
 		if (bitmap_test(bitmap, i))
 		{
-			// update new fbm and allocate space for the block
-			if (!block_store_request(bs, i)) return NULL;
-			// write data to the block
-			if (block_store_write(bs, i, buf) != BLOCK_SIZE_BYTES) return NULL;
+			// Update new FBM. 
+			if (!block_store_request(bs, i)){
+                return NULL;
+            } 
+			// Populate the block. 
+			if (block_store_write(bs, i, buf) != BLOCK_SIZE_BYTES) 
+            {
+                return NULL;
+            }
 		}
 	}
 
+    free(buf);
+    free(bitmap);
     return bs; 
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
-    // bad inputs
+    // Check for bad inputs. 
     if (!bs || !filename || !strcmp(filename, "\n") || !strcmp(filename, "\0") || !strcmp(filename, ""))
     {
         return 0;
     } 
 
-    // system call to open file
+    // System call to create or open the file. 
     int fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0777);
     if (fd == -1)
     {
-		printf("Serialize open file error: %s/n", strerror(errno));
+		printf("Serialize Error (open): %s/n", strerror(errno));
 	}
 
-    // serialize data
-    size_t i = 0; 
     char *buf = malloc(BLOCK_SIZE_BYTES);
+
+    // Serialize the data. 
+    size_t i = 0; 
     for (i = 0; i < 256; i++) 
     {
-        
+        // Special case for FBM. 
 		if (i == 127)
 		{
 			memcpy(buf, bitmap_export(bs->fbm), BITMAP_SIZE_BYTES); 
@@ -272,17 +287,19 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
             memcpy(buf, (bs->blocks)[i], BLOCK_SIZE_BYTES);
         }
     
-        // write bytes to output file
+        // Write the data to the file. 
         if (write(fd, buf, BLOCK_SIZE_BYTES) == -1) 
         {
-			printf("Serialize file write error: %s/n", strerror(errno));
+			printf("Serialize Error (write): %s/n", strerror(errno));
 		}
     }
 	
-	if (close(fd) == -1) // close file descriptor
+    // Close the file. 
+	if (close(fd) == -1) 
 	{
-		printf("Serialize close file error: %s/n", strerror(errno));
+		printf("Serialize Error (close): %s/n", strerror(errno));
 	}
 	
+    free(buf);
     return BLOCK_STORE_NUM_BYTES;
 }
